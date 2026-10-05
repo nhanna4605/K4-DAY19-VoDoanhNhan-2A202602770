@@ -1,0 +1,78 @@
+# Ontology gợi ý (KG_ONTOLOGY=hint) — graph dựng bởi lần chạy benchmark gợi ý: {'nodes': 200, 'relationships': 378}
+
+### Node theo label
+MATCH (n) RETURN labels(n)[0] AS label, count(*) AS n ORDER BY n DESC
+   {"label": "Clause", "n": 99}
+   {"label": "Person", "n": 33}
+   {"label": "Article", "n": 18}
+   {"label": "Substance", "n": 16}
+   {"label": "Case", "n": 14}
+   {"label": "Crime", "n": 13}
+   {"label": "Location", "n": 7}
+   (7 dòng)
+
+### Cạnh theo loại
+MATCH ()-[r]->() RETURN type(r) AS rel, count(*) AS n ORDER BY n DESC
+   {"rel": "MENTIONS", "n": 169}
+   {"rel": "HAS_CLAUSE", "n": 99}
+   {"rel": "INVOLVED_IN", "n": 41}
+   {"rel": "INVOLVES", "n": 23}
+   {"rel": "CHARGED_WITH", "n": 19}
+   {"rel": "LOCATED_IN", "n": 14}
+   {"rel": "DEFINES", "n": 13}
+   (7 dòng)
+
+### E3: số Substance
+MATCH (s:Substance) RETURN count(s) AS substances
+   {"substances": 16}
+   (1 dòng)
+
+### E3: Substance trùng (khác nhau chỉ hoa/thường)
+MATCH (s:Substance) WITH toLower(s.name) AS k, collect(s.name) AS names WHERE size(names) > 1 RETURN k, names
+   {"k": "methamphetamine", "names": ["Methamphetamine", "methamphetamine"]}
+   {"k": "ketamine", "names": ["Ketamine", "ketamine"]}
+   (2 dòng)
+
+### E3: các tên Substance
+MATCH (s:Substance) RETURN s.name AS name ORDER BY toLower(s.name)
+   {"name": "Amphetamine"}
+   {"name": "chất ma túy"}
+   {"name": "Cocaine"}
+   {"name": "côca"}
+   {"name": "cần sa"}
+   {"name": "etomidate"}
+   {"name": "Heroine"}
+   {"name": "Ketamine"}
+   {"name": "ketamine"}
+   {"name": "ma túy"}
+   {"name": "MDMA"}
+   {"name": "Methamphetamine"}
+   {"name": "methamphetamine"}
+   {"name": "thuốc lắc"}
+   {"name": "thuốc phiện"}
+   {"name": "XLR-11"}
+   (16 dòng)
+
+### E6: số INVOLVED_IN có charge rỗng
+MATCH ()-[r:INVOLVED_IN]->() RETURN count(r) AS tong, sum(CASE WHEN r.charge = '' THEN 1 ELSE 0 END) AS charge_rong
+   {"tong": 41, "charge_rong": 9}
+   (1 dòng)
+
+### D4: thuộc tính có trên INVOLVED_IN và Case
+MATCH ()-[r:INVOLVED_IN]->() WITH collect(DISTINCT keys(r)) AS rel_keys MATCH (k:Case) RETURN rel_keys, collect(DISTINCT keys(k))[0] AS case_keys
+   {"rel_keys": [["role", "charge", "sentence"], ["sentence", "role", "charge"]], "case_keys": ["date", "source_title", "name", "doc_id", "summary"]}
+   (1 dòng)
+
+### E1: Case không nối được luật
+MATCH (k:Case) WHERE NOT (k)-[:CHARGED_WITH]->() RETURN k.name AS vu, k.doc_id AS doc
+   {"vu": "Vụ tông cảnh sát giao thông ở An Giang", "doc": "news-100260926112415229"}
+   (1 dòng)
+
+### Hoàng Nato: số Case
+MATCH (k:Case) WHERE k.name CONTAINS 'Nato' RETURN count(k) AS so_case
+   {"so_case": 4}
+   (1 dòng)
+
+## context(Q4) trên ontology gợi ý: 25 dữ kiện, 5590 ký tự; khoản theo Điều: {'Điều 249': [1], 'Điều 251': [1], 'Điều 255': [1]}
+
+## context(Q5) trên ontology gợi ý: 36 dữ kiện, 16944 ký tự; khoản theo Điều: {'Điều 249': [1, 2, 3, 4], 'Điều 250': [1, 2, 3, 4], 'Điều 251': [1, 2, 3, 4], 'Điều 255': [1]}
