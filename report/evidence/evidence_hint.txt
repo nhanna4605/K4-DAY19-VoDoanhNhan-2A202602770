@@ -1,11 +1,11 @@
-# Ontology gợi ý (KG_ONTOLOGY=hint) — graph dựng bởi lần chạy benchmark gợi ý: {'nodes': 200, 'relationships': 378}
+# Ontology gợi ý — graph dựng bởi lần chạy benchmark cuối (khớp ket_qua_benchmark_kg.txt): {'nodes': 203, 'relationships': 379}
 
 ### Node theo label
 MATCH (n) RETURN labels(n)[0] AS label, count(*) AS n ORDER BY n DESC
    {"label": "Clause", "n": 99}
-   {"label": "Person", "n": 33}
+   {"label": "Person", "n": 34}
    {"label": "Article", "n": 18}
-   {"label": "Substance", "n": 16}
+   {"label": "Substance", "n": 18}
    {"label": "Case", "n": 14}
    {"label": "Crime", "n": 13}
    {"label": "Location", "n": 7}
@@ -15,23 +15,24 @@ MATCH (n) RETURN labels(n)[0] AS label, count(*) AS n ORDER BY n DESC
 MATCH ()-[r]->() RETURN type(r) AS rel, count(*) AS n ORDER BY n DESC
    {"rel": "MENTIONS", "n": 169}
    {"rel": "HAS_CLAUSE", "n": 99}
-   {"rel": "INVOLVED_IN", "n": 41}
-   {"rel": "INVOLVES", "n": 23}
-   {"rel": "CHARGED_WITH", "n": 19}
+   {"rel": "INVOLVED_IN", "n": 42}
+   {"rel": "INVOLVES", "n": 25}
+   {"rel": "CHARGED_WITH", "n": 17}
    {"rel": "LOCATED_IN", "n": 14}
    {"rel": "DEFINES", "n": 13}
    (7 dòng)
 
 ### E3: số Substance
 MATCH (s:Substance) RETURN count(s) AS substances
-   {"substances": 16}
+   {"substances": 18}
    (1 dòng)
 
 ### E3: Substance trùng (khác nhau chỉ hoa/thường)
 MATCH (s:Substance) WITH toLower(s.name) AS k, collect(s.name) AS names WHERE size(names) > 1 RETURN k, names
-   {"k": "methamphetamine", "names": ["Methamphetamine", "methamphetamine"]}
    {"k": "ketamine", "names": ["Ketamine", "ketamine"]}
-   (2 dòng)
+   {"k": "cần sa", "names": ["Cần sa", "cần sa"]}
+   {"k": "methamphetamine", "names": ["methamphetamine", "Methamphetamine"]}
+   (3 dòng)
 
 ### E3: các tên Substance
 MATCH (s:Substance) RETURN s.name AS name ORDER BY toLower(s.name)
@@ -39,23 +40,25 @@ MATCH (s:Substance) RETURN s.name AS name ORDER BY toLower(s.name)
    {"name": "chất ma túy"}
    {"name": "Cocaine"}
    {"name": "côca"}
+   {"name": "Cần sa"}
    {"name": "cần sa"}
    {"name": "etomidate"}
    {"name": "Heroine"}
    {"name": "Ketamine"}
    {"name": "ketamine"}
    {"name": "ma túy"}
+   {"name": "ma túy tổng hợp"}
    {"name": "MDMA"}
-   {"name": "Methamphetamine"}
    {"name": "methamphetamine"}
+   {"name": "Methamphetamine"}
    {"name": "thuốc lắc"}
    {"name": "thuốc phiện"}
    {"name": "XLR-11"}
-   (16 dòng)
+   (18 dòng)
 
 ### E6: số INVOLVED_IN có charge rỗng
 MATCH ()-[r:INVOLVED_IN]->() RETURN count(r) AS tong, sum(CASE WHEN r.charge = '' THEN 1 ELSE 0 END) AS charge_rong
-   {"tong": 41, "charge_rong": 9}
+   {"tong": 42, "charge_rong": 9}
    (1 dòng)
 
 ### D4: thuộc tính có trên INVOLVED_IN và Case
@@ -73,6 +76,37 @@ MATCH (k:Case) WHERE k.name CONTAINS 'Nato' RETURN count(k) AS so_case
    {"so_case": 4}
    (1 dòng)
 
-## context(Q4) trên ontology gợi ý: 25 dữ kiện, 5590 ký tự; khoản theo Điều: {'Điều 249': [1], 'Điều 251': [1], 'Điều 255': [1]}
+## context(Q4) trên ontology gợi ý: 26 dữ kiện, 5685 ký tự; khoản theo Điều: {'Điều 249': [1], 'Điều 251': [1], 'Điều 255': [1]}
 
-## context(Q5) trên ontology gợi ý: 36 dữ kiện, 16944 ký tự; khoản theo Điều: {'Điều 249': [1, 2, 3, 4], 'Điều 250': [1, 2, 3, 4], 'Điều 251': [1, 2, 3, 4], 'Điều 255': [1]}
+## context(Q5) trên ontology gợi ý: 37 dữ kiện, 16855 ký tự; khoản theo Điều: {'Điều 249': [1, 2, 3, 4], 'Điều 250': [1, 2, 3, 4], 'Điều 251': [1, 2, 3, 4], 'Điều 255': [1]}
+# Graph: {'nodes': 203, 'relationships': 379}
+
+### Q-D: Cái Quang Huy có đường tới Điều luật?
+MATCH p=(:Person {name:'Cái Quang Huy'})-[:INVOLVED_IN]->(:Case)-[:CHARGED_WITH]->(:Crime)<-[:DEFINES]-(a:Article) RETURN a.id AS article
+   {'article': 'Điều 250 BLHS'}
+   (1 dòng)
+
+### E5/Q6: vụ liên quan MDMA
+MATCH (k:Case)-[i:INVOLVES]->(:Substance {name:'MDMA'}) RETURN k.name AS vu, k.doc_id AS doc, i.amount AS amount ORDER BY vu
+   {'vu': 'Vụ góp tiền mua ma túy tại Hà Nội', 'doc': 'news-100260918080821054', 'amount': '5 viên'}
+   {'vu': 'Vụ tổ chức sử dụng ma túy tại Sầm Sơn', 'doc': 'news-100260930085028036', 'amount': '0,686g'}
+   {'vu': 'Vụ vận chuyển ma túy từ Đức về Việt Nam', 'doc': 'news-100260917203001265', 'amount': '9.6kg'}
+   {'vu': 'Vụ án tại Viện Pháp y tâm thần Trung ương', 'doc': 'news-100260924105118645', 'amount': ''}
+   (4 dòng)
+
+### Điều 255: các khoản và mức phạt
+MATCH (:Article {id:'Điều 255 BLHS'})-[:HAS_CLAUSE]->(c:Clause) RETURN c.number AS khoan, c.penalty AS penalty ORDER BY khoan
+   {'khoan': 1, 'penalty': 'phạt tù từ 02 năm đến 07 năm'}
+   {'khoan': 2, 'penalty': 'phạt tù từ 07 năm đến 15 năm'}
+   {'khoan': 3, 'penalty': 'phạt tù từ 15 năm đến 20 năm'}
+   {'khoan': 4, 'penalty': 'phạt tù 20 năm hoặc tù chung thân'}
+   {'khoan': 5, 'penalty': 'phạt tiền từ 50.000.000 đồng đến 500.000.000 đồng, phạt quản chế, cấm cư trú từ 01 năm đến 05 năm hoặc tịch thu một phần hoặc toàn bộ tài sản'}
+   (5 dòng)
+
+### Hoàng Nato: Case/Crime
+MATCH (k:Case)-[:CHARGED_WITH]->(c:Crime) WHERE k.name CONTAINS 'Nato' RETURN k.name AS vu, collect(c.name) AS toi
+   {'vu': "Vụ bắt 'Hoàng Nato' và triệt phá 8 đường dây ma túy", 'toi': ['tổ chức sử dụng trái phép chất ma túy']}
+   {'vu': "Vụ bắt giang hồ 'Hoàng Nato' và 126 người liên quan 8 đường dây ma túy", 'toi': ['tổ chức sử dụng trái phép chất ma túy', 'tàng trữ trái phép chất ma túy', 'mua bán trái phép chất ma túy']}
+   {'vu': "Vụ bắt giữ TikToker Phannhibeauty và giang hồ 'Hoàng Nato'", 'toi': ['tổ chức sử dụng trái phép chất ma túy']}
+   {'vu': 'Vụ sử dụng ma túy etomidate của Hoàng Nato và Phan Kim Nhi', 'toi': ['tổ chức sử dụng trái phép chất ma túy']}
+   (4 dòng)
